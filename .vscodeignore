@@ -1,6 +1,7 @@
 .vscode/**
 .gitignore
 src/**
+!media/**
 tsconfig.json
 node_modules/**
 !node_modules/marked/**

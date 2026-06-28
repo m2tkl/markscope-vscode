@@ -1,7 +1,0 @@
-{
-    "markscope.command": "node",
-    "markscope.args": [
-        "../markscope/bin/markscope.js",
-        "--no-open"
-    ]
-}
