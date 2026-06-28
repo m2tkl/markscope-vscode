@@ -1,0 +1,83 @@
+{
+  "name": "markscope-vscode",
+  "displayName": "Markscope",
+  "description": "Open Markdown files in Markscope from VS Code.",
+  "version": "0.0.1",
+  "publisher": "m2tkl",
+  "private": true,
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCustomEditor:markscope.preview",
+    "onCommand:markscope.openPreview",
+    "onCommand:markscope.openPreviewFromExplorer"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "markscope.openPreview",
+        "title": "Markscope: Open Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "markscope.openPreviewFromExplorer",
+        "title": "Open in Markscope"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "markscope.preview",
+        "displayName": "Markscope Preview",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          },
+          {
+            "filenamePattern": "*.markdown"
+          },
+          {
+            "filenamePattern": "*.mdown"
+          },
+          {
+            "filenamePattern": "*.mkd"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "markscope.openPreview",
+          "when": "resourceLangId == markdown",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "markscope.openPreviewFromExplorer",
+          "when": "resourceLangId == markdown",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "pnpm run compile"
+  },
+  "dependencies": {
+    "marked": "^15.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/vscode": "1.96.0",
+    "typescript": "5.7.2"
+  }
+}
