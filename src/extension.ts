@@ -42,12 +42,11 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
   constructor(private readonly extensionUri: vscode.Uri) {}
 
   resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): void {
-    const markedRoot = vscode.Uri.joinPath(this.extensionUri, "node_modules", "marked", "lib");
     const mediaRoot = vscode.Uri.joinPath(this.extensionUri, "media");
 
     panel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [markedRoot, mediaRoot],
+      localResourceRoots: [mediaRoot],
     };
     panel.webview.html = getPreviewHtml(panel.webview, this.extensionUri);
 
@@ -142,7 +141,7 @@ async function openMarkscopePreview(uri: vscode.Uri): Promise<void> {
 
 function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
   const nonce = getNonce();
-  const markedUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "node_modules", "marked", "lib", "marked.esm.js"));
+  const markedUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "marked.esm.js"));
   const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "preview.js"));
   const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "preview.css"));
 
