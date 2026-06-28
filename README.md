@@ -31,10 +31,24 @@ From the Explorer context menu, use `Open in Markscope` on a Markdown file.
 
 ## Development Setup
 
+Enter the Nix development shell:
+
+```sh
+nix develop
+```
+
+The shell provides Node.js 22 and pnpm 10.
+
 Install dependencies:
 
 ```sh
 pnpm install
+```
+
+For non-interactive shells, use:
+
+```sh
+CI=true pnpm install --frozen-lockfile
 ```
 
 Compile the extension:
@@ -50,6 +64,12 @@ Package a local `.vsix`:
 ```sh
 pnpm run package
 ```
+
+Publish from the Marketplace publisher management page:
+
+1. Run `pnpm run package`.
+2. Open the Visual Studio Marketplace publisher management page.
+3. Upload the generated `markscope-vscode-0.0.1.vsix`.
 
 ## Commands
 

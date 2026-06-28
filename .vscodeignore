@@ -1,6 +1,8 @@
 .vscode/**
 .gitignore
 pnpm-lock.yaml
+flake.nix
+flake.lock
 src/**
 !media/**
 tsconfig.json
