@@ -22,14 +22,14 @@ export function startPreview({ marked }) {
     for (const button of document.querySelectorAll("[data-mode]")) {
       button.addEventListener("click", () => {
         state.mode = button.dataset.mode;
-        render();
+        render({ readingListScrollTop: currentReadingListScrollTop() });
       });
     }
 
     for (const button of document.querySelectorAll("[data-level]")) {
       button.addEventListener("click", () => {
         state.level = button.dataset.level;
-        render();
+        render({ readingListScrollTop: currentReadingListScrollTop() });
       });
     }
 
@@ -40,7 +40,10 @@ export function startPreview({ marked }) {
         content.style.gridTemplateColumns = "";
         content.style.gridTemplateRows = "";
         applyLayout();
-        render();
+        render({
+          readingListScrollTop: currentReadingListScrollTop(),
+          sectionBodyScrollTop: currentSectionBodyScrollTop(),
+        });
       });
     }
 
@@ -102,12 +105,20 @@ export function startPreview({ marked }) {
         return;
       }
 
+      const readingListScrollTop = currentReadingListScrollTop();
+      const sectionBodyScrollTop = currentSectionBodyScrollTop();
+      const previousActiveId = state.activeId;
+
       state.markdown = event.data.markdown ?? "";
       state.sections = parseSections(state.markdown);
-      if (!state.sections.some((section) => section.id === state.activeId)) {
+      const selectedSectionStillExists = state.sections.some((section) => section.id === previousActiveId);
+      if (!selectedSectionStillExists) {
         state.activeId = state.sections[0]?.id;
       }
-      render();
+      render({
+        readingListScrollTop,
+        sectionBodyScrollTop: selectedSectionStillExists ? sectionBodyScrollTop : null,
+      });
     });
   }
 
@@ -177,7 +188,7 @@ export function startPreview({ marked }) {
     return headingLines;
   }
 
-  function render() {
+  function render({ readingListScrollTop = null, sectionBodyScrollTop = null } = {}) {
     applyLayout();
     updatePressed("[data-mode]", state.mode);
     updatePressed("[data-level]", state.level);
@@ -198,6 +209,8 @@ export function startPreview({ marked }) {
 
     readingList.replaceChildren(...sections.map(renderSectionCard));
     renderBody(state.sections.find((section) => section.id === state.activeId) ?? fallbackSection);
+    restoreReadingListScroll(readingListScrollTop);
+    restoreSectionBodyScroll(sectionBodyScrollTop);
   }
 
   function visibleSections() {
@@ -249,9 +262,17 @@ export function startPreview({ marked }) {
   }
 
   function selectSection(sectionId, { focusPreview = false } = {}) {
+    if (state.activeId === sectionId) {
+      if (focusPreview) {
+        focusPreviewSurface();
+      }
+      return;
+    }
+
     state.activeId = sectionId;
-    render();
-    scrollSectionCardIntoView(sectionId);
+    if (!updateSelectedSectionInPlace(sectionId)) {
+      render({ readingListScrollTop: currentReadingListScrollTop() });
+    }
 
     if (focusPreview) {
       focusPreviewSurface();
@@ -266,6 +287,7 @@ export function startPreview({ marked }) {
 
     if (nextSection) {
       selectSection(nextSection.id, { focusPreview: true });
+      scrollSectionCardIntoView(nextSection.id);
     }
   }
 
@@ -276,8 +298,26 @@ export function startPreview({ marked }) {
     }
 
     state.activeId = nextSection.id;
-    render();
+    if (!updateSelectedSectionInPlace(nextSection.id)) {
+      render({ readingListScrollTop: currentReadingListScrollTop() });
+    }
     scrollSectionCardIntoView(nextSection.id);
+  }
+
+  function updateSelectedSectionInPlace(sectionId) {
+    const section = state.sections.find((candidate) => candidate.id === sectionId);
+    const card = readingList.querySelector('[data-section-id="' + CSS.escape(sectionId) + '"]');
+    if (!section || !card) {
+      return false;
+    }
+
+    for (const row of readingList.querySelectorAll(".section-card")) {
+      const selected = row.dataset.sectionId === sectionId;
+      row.classList.toggle("is-active", selected);
+      row.setAttribute("aria-current", String(selected));
+    }
+    renderBody(section);
+    return true;
   }
 
   function sectionForLine(line) {
@@ -292,13 +332,53 @@ export function startPreview({ marked }) {
   }
 
   function scrollSectionCardIntoView(sectionId) {
-    readingList
-      .querySelector('[data-section-id="' + CSS.escape(sectionId) + '"]')
-      ?.scrollIntoView({ block: "nearest" });
+    const card = readingList.querySelector('[data-section-id="' + CSS.escape(sectionId) + '"]');
+    if (!card) {
+      return;
+    }
+
+    const padding = 8;
+    const listRect = readingList.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const visibleTop = listRect.top + padding;
+    const visibleBottom = listRect.bottom - padding;
+
+    if (cardRect.top < visibleTop) {
+      readingList.scrollTop -= visibleTop - cardRect.top;
+      return;
+    }
+
+    if (cardRect.bottom > visibleBottom) {
+      readingList.scrollTop += cardRect.bottom - visibleBottom;
+    }
   }
 
   function focusPreviewSurface() {
     content.focus({ preventScroll: true });
+  }
+
+  function currentReadingListScrollTop() {
+    return readingList.scrollTop;
+  }
+
+  function currentSectionBodyScrollTop() {
+    return sectionBody.scrollTop;
+  }
+
+  function restoreReadingListScroll(scrollTop) {
+    restoreScrollTop(readingList, scrollTop);
+  }
+
+  function restoreSectionBodyScroll(scrollTop) {
+    restoreScrollTop(sectionBody, scrollTop);
+  }
+
+  function restoreScrollTop(element, scrollTop) {
+    if (scrollTop === null) {
+      return;
+    }
+
+    element.scrollTop = scrollTop;
   }
 
   function renderBody(section) {
