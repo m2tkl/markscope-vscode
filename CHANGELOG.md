@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.3
+
+- Stabilized preview selection updates to avoid unnecessary outline scrolling during keyboard navigation.
+- Preserved reading list and section body scroll positions across structural preview updates.
+
 ## 0.0.2
 
 - Fixed the section body pane to show only the selected section body.
