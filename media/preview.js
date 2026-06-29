@@ -303,25 +303,8 @@ export function startPreview({ marked }) {
 
   function renderBody(section) {
     const article = document.createElement("article");
-    article.innerHTML = marked.parser(sectionBodyTokens(section));
+    article.innerHTML = marked.parser(section.tokens);
     sectionBody.replaceChildren(article);
-  }
-
-  function sectionBodyTokens(section) {
-    const start = state.sections.findIndex((candidate) => candidate.id === section.id);
-    if (start === -1) {
-      return section.tokens;
-    }
-
-    const tokens = [];
-    for (let index = start; index < state.sections.length; index += 1) {
-      const candidate = state.sections[index];
-      if (index > start && candidate.depth <= section.depth) {
-        break;
-      }
-      tokens.push(...candidate.tokens);
-    }
-    return tokens;
   }
 
   function firstParagraph(section) {
