@@ -198,38 +198,15 @@ button[aria-pressed="true"] {
   overflow-wrap: anywhere;
 }
 
-.section-body h1 {
-  font-size: 28px;
-}
-
-.section-body h2 {
-  font-size: 21px;
-}
-
-.section-body h3 {
-  font-size: 17px;
-}
-
-.section-body h4,
-.section-body h5,
-.section-body h6 {
-  font-size: 14px;
-}
-
 .section-body h1,
 .section-body h2,
 .section-body h3,
 .section-body h4,
 .section-body h5,
 .section-body h6 {
+  font-size: 1.18rem;
   line-height: 1.25;
-  margin: 1.4em 0 0.55em;
-}
-
-.section-body h1:first-child,
-.section-body h2:first-child,
-.section-body h3:first-child {
-  margin-top: 0;
+  margin: 0 0 0.55em;
 }
 
 .section-body p,
