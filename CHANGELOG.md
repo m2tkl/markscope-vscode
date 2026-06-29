@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.4
+
+- Aligned selected section heading styles with the Markscope reading pane.
+
 ## 0.0.3
 
 - Stabilized preview selection updates to avoid unnecessary outline scrolling during keyboard navigation.
