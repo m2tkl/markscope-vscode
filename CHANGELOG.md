@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.5
+
+- Open Markscope Preview in the current editor group instead of a side split.
+- Added an in-preview Edit action that returns to the focused Markdown section.
+- Removed the editor title button for opening Markscope Preview.
+- Fixed fenced code block styling in the selected section body.
+
 ## 0.0.4
 
 - Aligned selected section heading styles with the Markscope reading pane.
