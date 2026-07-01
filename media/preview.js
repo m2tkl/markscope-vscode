@@ -47,6 +47,10 @@ export function startPreview({ marked }) {
       });
     }
 
+    document.querySelector('[data-action="open-editor"]')?.addEventListener("click", () => {
+      openEditorAtActiveSection();
+    });
+
     content.addEventListener("click", () => {
       content.focus({ preventScroll: true });
     });
@@ -355,6 +359,14 @@ export function startPreview({ marked }) {
 
   function focusPreviewSurface() {
     content.focus({ preventScroll: true });
+  }
+
+  function openEditorAtActiveSection() {
+    const section = state.sections.find((candidate) => candidate.id === state.activeId) ?? state.sections[0];
+    vscode.postMessage({
+      type: "openEditor",
+      line: section?.line ?? 0,
+    });
   }
 
   function currentReadingListScrollTop() {

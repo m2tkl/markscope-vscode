@@ -37,8 +37,7 @@
     "commands": [
       {
         "command": "markscope.openPreview",
-        "title": "Markscope: Open Preview",
-        "icon": "$(open-preview)"
+        "title": "Markscope: Open Preview"
       },
       {
         "command": "markscope.openPreviewFromExplorer",
@@ -67,13 +66,6 @@
       }
     ],
     "menus": {
-      "editor/title": [
-        {
-          "command": "markscope.openPreview",
-          "when": "resourceLangId == markdown",
-          "group": "navigation"
-        }
-      ],
       "explorer/context": [
         {
           "command": "markscope.openPreviewFromExplorer",

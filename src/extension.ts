@@ -6,6 +6,7 @@ const previewViewType = "markscope.preview";
 const markdownExtensions = [".md", ".markdown", ".mdown", ".mkd"];
 
 type WebviewMessage = {
+  readonly line?: number;
   readonly type?: string;
 };
 
@@ -85,10 +86,15 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
       selectionSubscription.dispose();
       activeEditorSubscription.dispose();
     });
-    panel.webview.onDidReceiveMessage((message: WebviewMessage) => {
+    panel.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       if (message.type === "ready") {
         update();
         syncCursor();
+        return;
+      }
+
+      if (message.type === "openEditor") {
+        await openMarkdownEditor(document, panel, message.line);
       }
     });
   }
@@ -136,7 +142,32 @@ function isMarkdownPath(filePath: string): boolean {
 }
 
 async function openMarkscopePreview(uri: vscode.Uri): Promise<void> {
-  await vscode.commands.executeCommand("vscode.openWith", uri, previewViewType, vscode.ViewColumn.Beside);
+  await vscode.commands.executeCommand("vscode.openWith", uri, previewViewType, {
+    preview: false,
+    viewColumn: vscode.ViewColumn.Active,
+  });
+}
+
+async function openMarkdownEditor(
+  document: vscode.TextDocument,
+  panel: vscode.WebviewPanel,
+  line = 0,
+): Promise<void> {
+  const lineNumber = normalizeLine(line, document);
+  const position = new vscode.Position(lineNumber, 0);
+  const range = new vscode.Range(position, position);
+  const editor = await vscode.window.showTextDocument(document, {
+    preserveFocus: false,
+    preview: false,
+    selection: range,
+    viewColumn: panel.viewColumn ?? vscode.ViewColumn.Active,
+  });
+  editor.revealRange(range, vscode.TextEditorRevealType.AtTop);
+}
+
+function normalizeLine(line: number | undefined, document: vscode.TextDocument): number {
+  const requestedLine = typeof line === "number" && Number.isFinite(line) ? line : 0;
+  return Math.min(Math.max(Math.trunc(requestedLine), 0), Math.max(document.lineCount - 1, 0));
 }
 
 function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
@@ -172,6 +203,9 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
         <button type="button" data-layout="auto" aria-pressed="true">Auto</button>
         <button type="button" data-layout="side" aria-pressed="false">Side</button>
         <button type="button" data-layout="stack" aria-pressed="false">Stack</button>
+      </div>
+      <div class="action-group" aria-label="Editor actions">
+        <button type="button" data-action="open-editor">Edit</button>
       </div>
     </header>
     <main class="content" tabindex="0" aria-label="Markscope preview">
