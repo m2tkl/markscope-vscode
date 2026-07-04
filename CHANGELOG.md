@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.6
+
+- Added support for rendering local Markdown images in the selected section body.
+
 ## 0.0.5
 
 - Open Markscope Preview in the current editor group instead of a side split.
