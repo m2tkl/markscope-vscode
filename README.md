@@ -67,9 +67,7 @@ pnpm run package
 
 Publish from the Marketplace publisher management page:
 
-1. Run `pnpm run package`.
-2. Open the Visual Studio Marketplace publisher management page.
-3. Upload the generated `markscope-vscode-0.0.1.vsix`.
+See [docs/release.md](docs/release.md) for the release checklist.
 
 ## Commands
 
