@@ -27,7 +27,7 @@ pnpm run package
 `pnpm run package` runs the prepublish compile step and creates:
 
 ```text
-markscope-vscode-<version>.vsix
+dist/markscope-vscode-<version>.vsix
 ```
 
 The generated `.vsix` is a local release artifact and is not committed.
