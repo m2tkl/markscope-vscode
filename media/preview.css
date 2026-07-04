@@ -258,6 +258,13 @@ button[aria-pressed="true"] {
   padding-left: 12px;
 }
 
+.section-body img {
+  display: block;
+  height: auto;
+  margin: 1em 0;
+  max-width: 100%;
+}
+
 .empty {
   align-items: center;
   color: var(--vscode-descriptionForeground);

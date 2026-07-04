@@ -44,16 +44,19 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
 
   resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): void {
     const mediaRoot = vscode.Uri.joinPath(this.extensionUri, "media");
+    const documentDirectory = vscode.Uri.file(path.dirname(document.uri.fsPath));
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
 
     panel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [mediaRoot],
+      localResourceRoots: [mediaRoot, workspaceFolder?.uri ?? documentDirectory],
     };
     panel.webview.html = getPreviewHtml(panel.webview, this.extensionUri);
 
     const update = (): void => {
       panel.webview.postMessage({
         type: "update",
+        imageBaseUri: webviewDirectoryUri(panel.webview, documentDirectory),
         markdown: document.getText(),
         version: document.version,
       });
@@ -222,6 +225,11 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
   </script>
 </body>
 </html>`;
+}
+
+function webviewDirectoryUri(webview: vscode.Webview, directory: vscode.Uri): string {
+  const uri = webview.asWebviewUri(directory).toString();
+  return uri.endsWith("/") ? uri : `${uri}/`;
 }
 
 function getNonce(): string {

@@ -5,6 +5,7 @@ export function startPreview({ marked }) {
   const sectionBody = document.getElementById("section-body");
   const content = document.querySelector(".content");
   const state = {
+    imageBaseUri: "",
     markdown: "",
     sections: [],
     activeId: undefined,
@@ -113,6 +114,7 @@ export function startPreview({ marked }) {
       const sectionBodyScrollTop = currentSectionBodyScrollTop();
       const previousActiveId = state.activeId;
 
+      state.imageBaseUri = event.data.imageBaseUri ?? "";
       state.markdown = event.data.markdown ?? "";
       state.sections = parseSections(state.markdown);
       const selectedSectionStillExists = state.sections.some((section) => section.id === previousActiveId);
@@ -396,7 +398,27 @@ export function startPreview({ marked }) {
   function renderBody(section) {
     const article = document.createElement("article");
     article.innerHTML = marked.parser(section.tokens);
+    resolveImageSources(article);
     sectionBody.replaceChildren(article);
+  }
+
+  function resolveImageSources(root) {
+    for (const image of root.querySelectorAll("img")) {
+      const source = image.getAttribute("src");
+      if (!source) {
+        continue;
+      }
+
+      image.src = resolveImageSource(source);
+    }
+  }
+
+  function resolveImageSource(source) {
+    if (!state.imageBaseUri || /^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i.test(source)) {
+      return source;
+    }
+
+    return new URL(source, state.imageBaseUri).toString();
   }
 
   function firstParagraph(section) {
