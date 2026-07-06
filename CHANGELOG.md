@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.7
+
+- Focus the preview automatically after opening so keyboard navigation works immediately.
+
 ## 0.0.6
 
 - Added support for rendering local Markdown images in the selected section body.

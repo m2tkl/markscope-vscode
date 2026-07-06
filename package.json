@@ -2,7 +2,7 @@
   "name": "markscope-vscode",
   "displayName": "Markscope",
   "description": "Open Markdown files in Markscope from VS Code.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "m2tkl",
   "packageManager": "pnpm@10.29.2",
   "license": "MIT",

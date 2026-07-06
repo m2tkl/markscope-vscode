@@ -14,7 +14,7 @@ Markdown parsing is bundled with the extension, so the published extension is se
 - Switch between outline-only and first-paragraph reading.
 - Filter the outline by heading depth.
 - Switch the reading panes between automatic, side-by-side, and stacked layouts.
-- Navigate sections with `ArrowUp`, `ArrowDown`, `j`, and `k` after clicking the preview.
+- Navigate sections with `ArrowUp`, `ArrowDown`, `j`, and `k`.
 - Sync the selected outline item from the active Markdown editor cursor.
 
 ## Usage
@@ -68,6 +68,7 @@ pnpm run package
 Publish from the Marketplace publisher management page:
 
 See [docs/release.md](docs/release.md) for the release checklist.
+Use the Nix development shell for release packaging so the pinned Node.js and pnpm versions are used.
 
 ## Commands
 

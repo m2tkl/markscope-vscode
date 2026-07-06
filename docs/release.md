@@ -4,11 +4,12 @@ This project is published as a VS Code Marketplace extension by uploading a pack
 
 ## Prerequisites
 
-- Use the repository dev environment or make sure Node.js and pnpm are available.
+- Use the repository Nix development shell. It provides the expected Node.js and pnpm versions.
 - Run commands from the repository root.
 - Keep the working tree clean before starting a release.
 
 ```sh
+nix develop
 git status --short
 ```
 
@@ -17,9 +18,11 @@ git status --short
 1. Choose the next version number.
 2. Update `package.json` `version`.
 3. Add a matching entry to `CHANGELOG.md`.
-4. Run the verification commands.
+4. Install dependencies in the Nix shell.
+5. Run the verification commands in the same Nix shell.
 
 ```sh
+pnpm install --frozen-lockfile
 pnpm run compile
 pnpm run package
 ```
@@ -53,4 +56,5 @@ git commit -m "Release <version>"
 
 - Do not commit access tokens or publisher credentials.
 - Azure CLI is not required for the current browser-upload flow.
+- Prefer `nix develop` for release packaging so `pnpm run package` uses the repository's pinned pnpm 10 toolchain.
 - If `pnpm run package` succeeds with npm config warnings, the package is still valid as long as `vsce` reports `DONE Packaged`.

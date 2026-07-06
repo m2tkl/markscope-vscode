@@ -13,6 +13,7 @@ export function startPreview({ marked }) {
     level: "all",
     layout: localStorage.getItem("markscope:layout") ?? "auto",
   };
+  let didFocusInitialPreview = false;
 
   connectControls();
   connectDivider();
@@ -125,6 +126,7 @@ export function startPreview({ marked }) {
         readingListScrollTop,
         sectionBodyScrollTop: selectedSectionStillExists ? sectionBodyScrollTop : null,
       });
+      focusInitialPreviewSurface();
     });
   }
 
@@ -361,6 +363,17 @@ export function startPreview({ marked }) {
 
   function focusPreviewSurface() {
     content.focus({ preventScroll: true });
+  }
+
+  function focusInitialPreviewSurface() {
+    if (didFocusInitialPreview) {
+      return;
+    }
+
+    didFocusInitialPreview = true;
+    requestAnimationFrame(() => {
+      focusPreviewSurface();
+    });
   }
 
   function openEditorAtActiveSection() {
