@@ -258,6 +258,49 @@ button[aria-pressed="true"] {
   padding-left: 12px;
 }
 
+.section-body table {
+  border-collapse: separate;
+  border-spacing: 0;
+  display: block;
+  font-size: 0.94em;
+  line-height: 1.45;
+  margin: 1em 0;
+  max-width: 100%;
+  overflow-x: auto;
+  width: max-content;
+}
+
+.section-body th,
+.section-body td {
+  border-bottom: 1px solid var(--vscode-panel-border);
+  border-right: 1px solid var(--vscode-panel-border);
+  min-width: 8rem;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.section-body th:first-child,
+.section-body td:first-child {
+  border-left: 1px solid var(--vscode-panel-border);
+}
+
+.section-body th {
+  background: var(--vscode-list-activeSelectionBackground, var(--vscode-editorWidget-background));
+  border-top: 1px solid var(--vscode-panel-border);
+  color: var(--vscode-list-activeSelectionForeground, var(--vscode-editor-foreground));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.section-body tbody tr:nth-child(even) {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.section-body table code {
+  white-space: nowrap;
+}
+
 .section-body img {
   display: block;
   height: auto;
