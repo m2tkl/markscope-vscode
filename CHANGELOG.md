@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.8
+
+- Improved Markdown table styling in the selected section body.
+- Kept preview keyboard focus after command palette interactions.
+- Added preview text size controls.
+- Replaced heading level filter buttons with a compact selector.
+
 ## 0.0.7
 
 - Focus the preview automatically after opening so keyboard navigation works immediately.
