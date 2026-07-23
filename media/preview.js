@@ -4,6 +4,9 @@ export function startPreview({ marked }) {
   const readingList = document.getElementById("reading-list");
   const sectionBody = document.getElementById("section-body");
   const content = document.querySelector(".content");
+  const defaultFontSize = 13;
+  const minFontSize = 11;
+  const maxFontSize = 20;
   const state = {
     imageBaseUri: "",
     markdown: "",
@@ -12,10 +15,12 @@ export function startPreview({ marked }) {
     mode: "outline",
     level: "all",
     layout: localStorage.getItem("markscope:layout") ?? "auto",
+    fontSize: readFontSize(),
   };
   let didFocusInitialPreview = false;
 
   connectControls();
+  applyFontSize();
   connectDivider();
   connectHostMessages();
   vscode.postMessage({ type: "ready" });
@@ -51,6 +56,18 @@ export function startPreview({ marked }) {
 
     document.querySelector('[data-action="open-editor"]')?.addEventListener("click", () => {
       openEditorAtActiveSection();
+    });
+
+    document.querySelector('[data-action="decrease-font-size"]')?.addEventListener("click", () => {
+      updateFontSize(state.fontSize - 1);
+    });
+
+    document.querySelector('[data-action="reset-font-size"]')?.addEventListener("click", () => {
+      updateFontSize(defaultFontSize);
+    });
+
+    document.querySelector('[data-action="increase-font-size"]')?.addEventListener("click", () => {
+      updateFontSize(state.fontSize + 1);
     });
 
     content.addEventListener("click", () => {
@@ -213,6 +230,7 @@ export function startPreview({ marked }) {
 
   function render({ readingListScrollTop = null, sectionBodyScrollTop = null } = {}) {
     applyLayout();
+    applyFontSize();
     updatePressed("[data-mode]", state.mode);
     updatePressed("[data-level]", state.level);
     updatePressed("button[data-layout]", state.layout);
@@ -251,6 +269,27 @@ export function startPreview({ marked }) {
 
   function applyLayout() {
     shell.dataset.layout = state.layout;
+  }
+
+  function readFontSize() {
+    const savedValue = localStorage.getItem("markscope:fontSize");
+    const value = savedValue === null ? defaultFontSize : Number(savedValue);
+    return clampFontSize(Number.isFinite(value) ? value : defaultFontSize);
+  }
+
+  function updateFontSize(fontSize) {
+    state.fontSize = clampFontSize(fontSize);
+    localStorage.setItem("markscope:fontSize", String(state.fontSize));
+    applyFontSize();
+    focusPreviewSurface();
+  }
+
+  function applyFontSize() {
+    shell.style.setProperty("--markscope-preview-font-size", state.fontSize + "px");
+  }
+
+  function clampFontSize(fontSize) {
+    return Math.min(Math.max(Math.trunc(fontSize), minFontSize), maxFontSize);
   }
 
   function isStackedLayout() {

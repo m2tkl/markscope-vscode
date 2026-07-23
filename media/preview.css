@@ -65,6 +65,7 @@ button[aria-pressed="true"] {
 .mode-group,
 .level-group,
 .layout-group,
+.typography-group,
 .action-group {
   display: flex;
   flex: 0 0 auto;
@@ -72,7 +73,8 @@ button[aria-pressed="true"] {
 }
 
 .mode-group,
-.level-group {
+.level-group,
+.layout-group {
   border-right: 1px solid var(--vscode-panel-border);
   margin-right: 3px;
   padding-right: 8px;
@@ -92,6 +94,7 @@ button[aria-pressed="true"] {
 
 .reading-list,
 .section-body {
+  font-size: var(--markscope-preview-font-size, 13px);
   min-width: 0;
   overflow: auto;
 }
@@ -165,30 +168,30 @@ button[aria-pressed="true"] {
 }
 
 .section-heading.level-1 {
-  font-size: 13px;
+  font-size: 1em;
   font-weight: 650;
 }
 
 .section-heading.level-2 {
-  font-size: 13px;
+  font-size: 1em;
 }
 
 .section-heading.level-3 {
-  font-size: 12px;
+  font-size: 0.92em;
 }
 
 .section-heading.level-4,
 .section-heading.level-5,
 .section-heading.level-6 {
   color: var(--vscode-descriptionForeground);
-  font-size: 12px;
+  font-size: 0.92em;
 }
 
 .section-preview {
   align-self: stretch;
   color: var(--vscode-descriptionForeground);
   display: -webkit-box;
-  font-size: 12px;
+  font-size: 0.92em;
   line-height: 1.4;
   margin-top: 3px;
   overflow: hidden;
@@ -210,7 +213,7 @@ button[aria-pressed="true"] {
 .section-body h4,
 .section-body h5,
 .section-body h6 {
-  font-size: 1.18rem;
+  font-size: 1.18em;
   line-height: 1.25;
   margin: 0 0 0.55em;
 }

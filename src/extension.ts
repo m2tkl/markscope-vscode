@@ -207,6 +207,11 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
         <button type="button" data-layout="side" aria-pressed="false">Side</button>
         <button type="button" data-layout="stack" aria-pressed="false">Stack</button>
       </div>
+      <div class="typography-group" aria-label="Text size">
+        <button type="button" data-action="decrease-font-size" aria-label="Decrease text size">-</button>
+        <button type="button" data-action="increase-font-size" aria-label="Increase text size">+</button>
+        <button type="button" data-action="reset-font-size" aria-label="Reset text size">Reset</button>
+      </div>
       <div class="action-group" aria-label="Editor actions">
         <button type="button" data-action="open-editor">Edit</button>
       </div>
