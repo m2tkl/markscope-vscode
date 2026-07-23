@@ -57,13 +57,28 @@ export function startPreview({ marked }) {
       content.focus({ preventScroll: true });
     });
 
-    content.addEventListener("keydown", (event) => {
+    window.addEventListener("focus", () => {
+      requestAnimationFrame(restorePreviewFocusIfNeeded);
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        requestAnimationFrame(restorePreviewFocusIfNeeded);
+      }
+    });
+
+    window.addEventListener("keydown", (event) => {
       if (event.target instanceof HTMLButtonElement) {
+        return;
+      }
+
+      if (event.ctrlKey || event.metaKey || event.altKey) {
         return;
       }
 
       if (event.key === "ArrowDown" || event.key === "j" || event.key === "ArrowUp" || event.key === "k") {
         event.preventDefault();
+        focusPreviewSurface();
         moveOutlineSelection(event.key === "ArrowDown" || event.key === "j" ? 1 : -1);
       }
     });
@@ -363,6 +378,12 @@ export function startPreview({ marked }) {
 
   function focusPreviewSurface() {
     content.focus({ preventScroll: true });
+  }
+
+  function restorePreviewFocusIfNeeded() {
+    if (document.activeElement === document.body || document.activeElement === document.documentElement) {
+      focusPreviewSurface();
+    }
   }
 
   function focusInitialPreviewSurface() {
