@@ -196,11 +196,13 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
         <button type="button" data-mode="firstParagraph" aria-pressed="false">First Paragraph</button>
       </div>
       <div class="level-group" aria-label="Heading level">
-        <button type="button" data-level="all" aria-pressed="true">All</button>
-        <button type="button" data-level="1" aria-pressed="false">H1</button>
-        <button type="button" data-level="2" aria-pressed="false">H2</button>
-        <button type="button" data-level="3" aria-pressed="false">H3</button>
-        <button type="button" data-level="4" aria-pressed="false">H4</button>
+        <select id="level-select" aria-label="Heading level">
+          <option value="all">All headings</option>
+          <option value="1">H1 only</option>
+          <option value="2">Up to H2</option>
+          <option value="3">Up to H3</option>
+          <option value="4">Up to H4</option>
+        </select>
       </div>
       <div class="layout-group" aria-label="Pane layout">
         <button type="button" data-layout="auto" aria-pressed="true">Auto</button>

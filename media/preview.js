@@ -33,12 +33,11 @@ export function startPreview({ marked }) {
       });
     }
 
-    for (const button of document.querySelectorAll("[data-level]")) {
-      button.addEventListener("click", () => {
-        state.level = button.dataset.level;
-        render({ readingListScrollTop: currentReadingListScrollTop() });
-      });
-    }
+    document.getElementById("level-select")?.addEventListener("change", (event) => {
+      state.level = event.target.value;
+      render({ readingListScrollTop: currentReadingListScrollTop() });
+      focusPreviewSurface();
+    });
 
     for (const button of document.querySelectorAll("button[data-layout]")) {
       button.addEventListener("click", () => {
@@ -85,7 +84,7 @@ export function startPreview({ marked }) {
     });
 
     window.addEventListener("keydown", (event) => {
-      if (event.target instanceof HTMLButtonElement) {
+      if (isInteractiveControl(event.target)) {
         return;
       }
 
@@ -232,7 +231,7 @@ export function startPreview({ marked }) {
     applyLayout();
     applyFontSize();
     updatePressed("[data-mode]", state.mode);
-    updatePressed("[data-level]", state.level);
+    updateLevelSelect();
     updatePressed("button[data-layout]", state.layout);
 
     if (state.sections.length === 0) {
@@ -265,6 +264,17 @@ export function startPreview({ marked }) {
       const value = button.dataset.mode ?? button.dataset.level ?? button.dataset.layout;
       button.setAttribute("aria-pressed", String(value === activeValue));
     }
+  }
+
+  function updateLevelSelect() {
+    const select = document.getElementById("level-select");
+    if (select instanceof HTMLSelectElement) {
+      select.value = state.level;
+    }
+  }
+
+  function isInteractiveControl(target) {
+    return target instanceof HTMLButtonElement || target instanceof HTMLSelectElement;
   }
 
   function applyLayout() {
