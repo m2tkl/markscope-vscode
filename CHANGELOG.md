@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.9
+
+- Added support for rendering Mermaid diagrams from fenced `mermaid` code blocks.
+- Added support for rendering PlantUML diagrams from fenced `plantuml` and `puml` code blocks.
+
 ## 0.0.8
 
 - Improved Markdown table styling in the selected section body.
