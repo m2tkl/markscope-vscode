@@ -1,4 +1,4 @@
-export function startPreview({ marked }) {
+export function startPreview({ marked, mermaid }) {
   const vscode = acquireVsCodeApi();
   const shell = document.querySelector(".shell");
   const readingList = document.getElementById("reading-list");
@@ -18,7 +18,9 @@ export function startPreview({ marked }) {
     fontSize: readFontSize(),
   };
   let didFocusInitialPreview = false;
+  let mermaidRenderVersion = 0;
 
+  initializeMermaid();
   connectControls();
   applyFontSize();
   connectDivider();
@@ -482,7 +484,59 @@ export function startPreview({ marked }) {
     const article = document.createElement("article");
     article.innerHTML = marked.parser(section.tokens);
     resolveImageSources(article);
+    prepareMermaidDiagrams(article);
     sectionBody.replaceChildren(article);
+    renderMermaidDiagrams(article);
+  }
+
+  function initializeMermaid() {
+    if (!mermaid) {
+      return;
+    }
+
+    mermaid.initialize({
+      fontFamily: "var(--vscode-font-family)",
+      securityLevel: "strict",
+      startOnLoad: false,
+      theme: document.body.classList.contains("vscode-dark") ? "dark" : "default",
+    });
+  }
+
+  function prepareMermaidDiagrams(root) {
+    for (const code of root.querySelectorAll("pre > code.language-mermaid")) {
+      const diagram = document.createElement("div");
+      diagram.className = "mermaid";
+      diagram.textContent = code.textContent ?? "";
+      code.parentElement?.replaceWith(diagram);
+    }
+  }
+
+  async function renderMermaidDiagrams(root) {
+    const diagrams = [...root.querySelectorAll(".mermaid")];
+    if (!mermaid || diagrams.length === 0) {
+      return;
+    }
+
+    const renderVersion = (mermaidRenderVersion += 1);
+    try {
+      await mermaid.run({
+        nodes: diagrams,
+        suppressErrors: true,
+      });
+    } catch (error) {
+      if (renderVersion !== mermaidRenderVersion) {
+        return;
+      }
+
+      for (const diagram of diagrams) {
+        if (diagram.querySelector("svg")) {
+          continue;
+        }
+        diagram.classList.add("mermaid-error");
+        diagram.textContent = "Unable to render Mermaid diagram.";
+      }
+      console.error(error);
+    }
   }
 
   function resolveImageSources(root) {

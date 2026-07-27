@@ -16,6 +16,7 @@ Markdown parsing is bundled with the extension, so the published extension is se
 - Switch the reading panes between automatic, side-by-side, and stacked layouts.
 - Navigate sections with `ArrowUp`, `ArrowDown`, `j`, and `k`.
 - Sync the selected outline item from the active Markdown editor cursor.
+- Render Mermaid diagrams from fenced `mermaid` code blocks.
 
 ## Usage
 

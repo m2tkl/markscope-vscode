@@ -176,6 +176,7 @@ function normalizeLine(line: number | undefined, document: vscode.TextDocument):
 function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
   const nonce = getNonce();
   const markedUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "marked.esm.js"));
+  const mermaidUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "mermaid.min.js"));
   const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "preview.js"));
   const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "preview.css"));
 
@@ -183,7 +184,7 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; script-src 'nonce-${nonce}' ${webview.cspSource}; style-src ${webview.cspSource};">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; script-src 'nonce-${nonce}' ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Markscope</title>
   <link rel="stylesheet" href="${styleUri}">
@@ -224,11 +225,12 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
       <section class="section-body" id="section-body" aria-label="Selected section"></section>
     </main>
   </div>
+  <script nonce="${nonce}" src="${mermaidUri}"></script>
   <script nonce="${nonce}" type="module">
     import { marked } from "${markedUri}";
     import { startPreview } from "${scriptUri}";
 
-    startPreview({ marked });
+    startPreview({ marked, mermaid: globalThis.mermaid });
   </script>
 </body>
 </html>`;
