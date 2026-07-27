@@ -82,6 +82,7 @@
     "vscode:prepublish": "pnpm run compile"
   },
   "devDependencies": {
+    "@plantuml/core": "^1.2026.6",
     "@types/node": "22.10.2",
     "@types/vscode": "1.96.0",
     "@vscode/vsce": "^3.9.2",

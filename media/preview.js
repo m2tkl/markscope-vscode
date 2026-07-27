@@ -1,4 +1,4 @@
-export function startPreview({ marked, mermaid }) {
+export function startPreview({ marked, mermaid, plantuml }) {
   const vscode = acquireVsCodeApi();
   const shell = document.querySelector(".shell");
   const readingList = document.getElementById("reading-list");
@@ -19,6 +19,7 @@ export function startPreview({ marked, mermaid }) {
   };
   let didFocusInitialPreview = false;
   let mermaidRenderVersion = 0;
+  let plantumlRenderVersion = 0;
 
   initializeMermaid();
   connectControls();
@@ -485,8 +486,10 @@ export function startPreview({ marked, mermaid }) {
     article.innerHTML = marked.parser(section.tokens);
     resolveImageSources(article);
     prepareMermaidDiagrams(article);
+    preparePlantUmlDiagrams(article);
     sectionBody.replaceChildren(article);
     renderMermaidDiagrams(article);
+    renderPlantUmlDiagrams(article);
   }
 
   function initializeMermaid() {
@@ -537,6 +540,56 @@ export function startPreview({ marked, mermaid }) {
       }
       console.error(error);
     }
+  }
+
+  function preparePlantUmlDiagrams(root) {
+    for (const code of root.querySelectorAll("pre > code.language-plantuml, pre > code.language-puml")) {
+      const diagram = document.createElement("div");
+      diagram.className = "plantuml";
+      diagram.textContent = code.textContent ?? "";
+      code.parentElement?.replaceWith(diagram);
+    }
+  }
+
+  async function renderPlantUmlDiagrams(root) {
+    const diagrams = [...root.querySelectorAll(".plantuml")];
+    if (!plantuml?.renderToString || diagrams.length === 0) {
+      return;
+    }
+
+    const renderVersion = (plantumlRenderVersion += 1);
+    const dark = document.body.classList.contains("vscode-dark");
+
+    await Promise.all(
+      diagrams.map(async (diagram) => {
+        const source = diagram.textContent ?? "";
+        try {
+          const svg = await renderPlantUmlToString(source, { dark });
+          if (renderVersion !== plantumlRenderVersion) {
+            return;
+          }
+          diagram.innerHTML = svg;
+        } catch (error) {
+          if (renderVersion !== plantumlRenderVersion) {
+            return;
+          }
+          diagram.classList.add("plantuml-error");
+          diagram.textContent = error instanceof Error ? error.message : "Unable to render PlantUML diagram.";
+          console.error(error);
+        }
+      }),
+    );
+  }
+
+  function renderPlantUmlToString(source, options) {
+    return new Promise((resolve, reject) => {
+      plantuml.renderToString(
+        source.split(/\r\n|\r|\n/),
+        (svg) => resolve(svg),
+        (message) => reject(new Error(message || "Unable to render PlantUML diagram.")),
+        options,
+      );
+    });
   }
 
   function resolveImageSources(root) {

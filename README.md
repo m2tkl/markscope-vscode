@@ -17,6 +17,7 @@ Markdown parsing is bundled with the extension, so the published extension is se
 - Navigate sections with `ArrowUp`, `ArrowDown`, `j`, and `k`.
 - Sync the selected outline item from the active Markdown editor cursor.
 - Render Mermaid diagrams from fenced `mermaid` code blocks.
+- Render PlantUML diagrams from fenced `plantuml` and `puml` code blocks.
 
 ## Usage
 

@@ -177,6 +177,8 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
   const nonce = getNonce();
   const markedUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "marked.esm.js"));
   const mermaidUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "mermaid.min.js"));
+  const plantumlUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "plantuml.js"));
+  const plantumlVizUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "vendor", "viz-global.js"));
   const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "preview.js"));
   const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "preview.css"));
 
@@ -184,7 +186,7 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; script-src 'nonce-${nonce}' ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; script-src 'nonce-${nonce}' ${webview.cspSource} 'wasm-unsafe-eval'; style-src ${webview.cspSource} 'unsafe-inline';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Markscope</title>
   <link rel="stylesheet" href="${styleUri}">
@@ -226,11 +228,19 @@ function getPreviewHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
     </main>
   </div>
   <script nonce="${nonce}" src="${mermaidUri}"></script>
+  <script nonce="${nonce}" src="${plantumlVizUri}"></script>
   <script nonce="${nonce}" type="module">
     import { marked } from "${markedUri}";
+    import { renderToString as renderPlantUmlToString } from "${plantumlUri}";
     import { startPreview } from "${scriptUri}";
 
-    startPreview({ marked, mermaid: globalThis.mermaid });
+    startPreview({
+      marked,
+      mermaid: globalThis.mermaid,
+      plantuml: {
+        renderToString: renderPlantUmlToString,
+      },
+    });
   </script>
 </body>
 </html>`;
