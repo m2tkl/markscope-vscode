@@ -33,6 +33,7 @@ export function startPreview({ marked, mermaid, plantuml }) {
       button.addEventListener("click", () => {
         state.mode = button.dataset.mode;
         render({ readingListScrollTop: currentReadingListScrollTop() });
+        focusPreviewSurface();
       });
     }
 
@@ -53,6 +54,7 @@ export function startPreview({ marked, mermaid, plantuml }) {
           readingListScrollTop: currentReadingListScrollTop(),
           sectionBodyScrollTop: currentSectionBodyScrollTop(),
         });
+        focusPreviewSurface();
       });
     }
 
