@@ -46,6 +46,7 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
     const mediaRoot = vscode.Uri.joinPath(this.extensionUri, "media");
     const documentDirectory = vscode.Uri.file(path.dirname(document.uri.fsPath));
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    const updateDebounceMs = 120;
 
     panel.webview.options = {
       enableScripts: true,
@@ -53,13 +54,25 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
     };
     panel.webview.html = getPreviewHtml(panel.webview, this.extensionUri);
 
+    let updateTimer: NodeJS.Timeout | undefined;
     const update = (): void => {
+      if (updateTimer) {
+        clearTimeout(updateTimer);
+        updateTimer = undefined;
+      }
+
       panel.webview.postMessage({
         type: "update",
         imageBaseUri: webviewDirectoryUri(panel.webview, documentDirectory),
         markdown: document.getText(),
         version: document.version,
       });
+    };
+    const scheduleUpdate = (): void => {
+      if (updateTimer) {
+        clearTimeout(updateTimer);
+      }
+      updateTimer = setTimeout(update, updateDebounceMs);
     };
     const syncCursor = (editor = vscode.window.activeTextEditor): void => {
       if (!editor || editor.document.uri.toString() !== document.uri.toString()) {
@@ -74,7 +87,7 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
 
     const changeSubscription = vscode.workspace.onDidChangeTextDocument((event) => {
       if (event.document.uri.toString() === document.uri.toString()) {
-        update();
+        scheduleUpdate();
       }
     });
     const selectionSubscription = vscode.window.onDidChangeTextEditorSelection((event) => {
@@ -85,6 +98,9 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
     });
 
     panel.onDidDispose(() => {
+      if (updateTimer) {
+        clearTimeout(updateTimer);
+      }
       changeSubscription.dispose();
       selectionSubscription.dispose();
       activeEditorSubscription.dispose();

@@ -18,8 +18,9 @@ export function startPreview({ marked, mermaid, plantuml }) {
     fontSize: readFontSize(),
   };
   let didFocusInitialPreview = false;
-  let mermaidRenderVersion = 0;
-  let plantumlRenderVersion = 0;
+  let bodyRenderVersion = 0;
+  let mermaidIdCounter = 0;
+  const diagramCache = new Map();
 
   initializeMermaid();
   connectControls();
@@ -484,14 +485,13 @@ export function startPreview({ marked, mermaid, plantuml }) {
   }
 
   function renderBody(section) {
+    const renderVersion = (bodyRenderVersion += 1);
     const article = document.createElement("article");
     article.innerHTML = marked.parser(section.tokens);
     resolveImageSources(article);
-    prepareMermaidDiagrams(article);
-    preparePlantUmlDiagrams(article);
+    const diagrams = [...prepareMermaidDiagrams(article), ...preparePlantUmlDiagrams(article)];
     sectionBody.replaceChildren(article);
-    renderMermaidDiagrams(article);
-    renderPlantUmlDiagrams(article);
+    renderDiagrams(diagrams, renderVersion);
   }
 
   function initializeMermaid() {
@@ -508,82 +508,106 @@ export function startPreview({ marked, mermaid, plantuml }) {
   }
 
   function prepareMermaidDiagrams(root) {
+    const diagrams = [];
     for (const code of root.querySelectorAll("pre > code.language-mermaid")) {
       const diagram = document.createElement("div");
-      diagram.className = "mermaid";
-      diagram.textContent = code.textContent ?? "";
+      diagram.className = "mermaid diagram-rendering";
+      diagram.textContent = "Rendering Mermaid diagram...";
       code.parentElement?.replaceWith(diagram);
+      diagrams.push({
+        element: diagram,
+        kind: "mermaid",
+        source: code.textContent ?? "",
+      });
     }
+    return diagrams;
   }
 
-  async function renderMermaidDiagrams(root) {
-    const diagrams = [...root.querySelectorAll(".mermaid")];
-    if (!mermaid || diagrams.length === 0) {
+  function preparePlantUmlDiagrams(root) {
+    const diagrams = [];
+    for (const code of root.querySelectorAll("pre > code.language-plantuml, pre > code.language-puml")) {
+      const diagram = document.createElement("div");
+      diagram.className = "plantuml diagram-rendering";
+      diagram.textContent = "Rendering PlantUML diagram...";
+      code.parentElement?.replaceWith(diagram);
+      diagrams.push({
+        element: diagram,
+        kind: "plantuml",
+        source: code.textContent ?? "",
+      });
+    }
+    return diagrams;
+  }
+
+  async function renderDiagrams(diagrams, renderVersion) {
+    if (diagrams.length === 0) {
       return;
     }
 
-    const renderVersion = (mermaidRenderVersion += 1);
+    await Promise.all(diagrams.map((diagram) => renderDiagram(diagram, renderVersion)));
+  }
+
+  async function renderDiagram(diagram, renderVersion) {
+    const dark = document.body.classList.contains("vscode-dark");
+    const cacheKey = [diagram.kind, dark ? "dark" : "light", diagram.source].join("\n");
+    const cachedSvg = diagramCache.get(cacheKey);
+
+    if (cachedSvg) {
+      applyDiagramSvg(diagram, cachedSvg);
+      return;
+    }
+
     try {
-      await mermaid.run({
-        nodes: diagrams,
-        suppressErrors: true,
-      });
-    } catch (error) {
-      if (renderVersion !== mermaidRenderVersion) {
+      const svg =
+        diagram.kind === "mermaid"
+          ? await renderMermaidToString(diagram.source)
+          : await renderPlantUmlToString(diagram.source, { dark });
+
+      if (renderVersion !== bodyRenderVersion) {
         return;
       }
 
-      for (const diagram of diagrams) {
-        if (diagram.querySelector("svg")) {
-          continue;
-        }
-        diagram.classList.add("mermaid-error");
-        diagram.textContent = "Unable to render Mermaid diagram.";
+      rememberDiagram(cacheKey, svg);
+      applyDiagramSvg(diagram, svg);
+    } catch (error) {
+      if (renderVersion !== bodyRenderVersion) {
+        return;
       }
+
+      diagram.element.classList.remove("diagram-rendering");
+      diagram.element.classList.add(diagram.kind + "-error");
+      diagram.element.textContent = error instanceof Error ? error.message : "Unable to render diagram.";
       console.error(error);
     }
   }
 
-  function preparePlantUmlDiagrams(root) {
-    for (const code of root.querySelectorAll("pre > code.language-plantuml, pre > code.language-puml")) {
-      const diagram = document.createElement("div");
-      diagram.className = "plantuml";
-      diagram.textContent = code.textContent ?? "";
-      code.parentElement?.replaceWith(diagram);
+  async function renderMermaidToString(source) {
+    if (!mermaid?.render) {
+      throw new Error("Unable to render Mermaid diagram.");
     }
+
+    const result = await mermaid.render("markscope-mermaid-" + (mermaidIdCounter += 1), source);
+    return result.svg;
   }
 
-  async function renderPlantUmlDiagrams(root) {
-    const diagrams = [...root.querySelectorAll(".plantuml")];
-    if (!plantuml?.renderToString || diagrams.length === 0) {
-      return;
+  function applyDiagramSvg(diagram, svg) {
+    diagram.element.classList.remove("diagram-rendering");
+    diagram.element.innerHTML = svg;
+  }
+
+  function rememberDiagram(cacheKey, svg) {
+    if (diagramCache.size >= 100) {
+      diagramCache.delete(diagramCache.keys().next().value);
     }
 
-    const renderVersion = (plantumlRenderVersion += 1);
-    const dark = document.body.classList.contains("vscode-dark");
-
-    await Promise.all(
-      diagrams.map(async (diagram) => {
-        const source = diagram.textContent ?? "";
-        try {
-          const svg = await renderPlantUmlToString(source, { dark });
-          if (renderVersion !== plantumlRenderVersion) {
-            return;
-          }
-          diagram.innerHTML = svg;
-        } catch (error) {
-          if (renderVersion !== plantumlRenderVersion) {
-            return;
-          }
-          diagram.classList.add("plantuml-error");
-          diagram.textContent = error instanceof Error ? error.message : "Unable to render PlantUML diagram.";
-          console.error(error);
-        }
-      }),
-    );
+    diagramCache.set(cacheKey, svg);
   }
 
   function renderPlantUmlToString(source, options) {
+    if (!plantuml?.renderToString) {
+      return Promise.reject(new Error("Unable to render PlantUML diagram."));
+    }
+
     return new Promise((resolve, reject) => {
       plantuml.renderToString(
         source.split(/\r\n|\r|\n/),
