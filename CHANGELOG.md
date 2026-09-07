@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0
+
+- Added double-click editing from outline headings and words in the selected section body.
+- Reduced Mermaid and PlantUML rendering flicker and reused previously rendered diagrams.
+- Kept preview keyboard focus after toolbar actions.
+- Added a Marketplace icon and gallery banner.
+
 ## 0.0.9
 
 - Added support for rendering Mermaid diagrams from fenced `mermaid` code blocks.

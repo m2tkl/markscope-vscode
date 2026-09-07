@@ -23,6 +23,7 @@ git status --short
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm test
 pnpm run compile
 pnpm run package
 ```
@@ -48,7 +49,7 @@ The generated `.vsix` is a local release artifact and is not committed.
 After packaging succeeds, commit only the release metadata changes.
 
 ```sh
-git add package.json CHANGELOG.md
+git add package.json CHANGELOG.md docs/release.md
 git commit -m "Release <version>"
 ```
 
