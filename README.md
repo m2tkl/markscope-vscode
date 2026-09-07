@@ -15,6 +15,7 @@ Markdown parsing is bundled with the extension, so the published extension is se
 - Filter the outline by heading depth.
 - Switch the reading panes between automatic, side-by-side, and stacked layouts.
 - Navigate sections with `ArrowUp`, `ArrowDown`, `j`, and `k`.
+- Open the Markdown editor at a heading or rendered block by double-clicking the preview.
 - Sync the selected outline item from the active Markdown editor cursor.
 - Render Mermaid diagrams from fenced `mermaid` code blocks.
 - Render PlantUML diagrams from fenced `plantuml` and `puml` code blocks.

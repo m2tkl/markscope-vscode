@@ -6,6 +6,7 @@ const previewViewType = "markscope.preview";
 const markdownExtensions = [".md", ".markdown", ".mdown", ".mkd"];
 
 type WebviewMessage = {
+  readonly character?: number;
   readonly line?: number;
   readonly type?: string;
 };
@@ -113,7 +114,7 @@ class MarkscopePreviewProvider implements vscode.CustomTextEditorProvider {
       }
 
       if (message.type === "openEditor") {
-        await openMarkdownEditor(document, panel, message.line);
+        await openMarkdownEditor(document, panel, message.line, message.character);
       }
     });
   }
@@ -171,9 +172,11 @@ async function openMarkdownEditor(
   document: vscode.TextDocument,
   panel: vscode.WebviewPanel,
   line = 0,
+  character = 0,
 ): Promise<void> {
   const lineNumber = normalizeLine(line, document);
-  const position = new vscode.Position(lineNumber, 0);
+  const characterNumber = normalizeCharacter(character, document.lineAt(lineNumber).text.length);
+  const position = new vscode.Position(lineNumber, characterNumber);
   const range = new vscode.Range(position, position);
   const editor = await vscode.window.showTextDocument(document, {
     preserveFocus: false,
@@ -182,6 +185,11 @@ async function openMarkdownEditor(
     viewColumn: panel.viewColumn ?? vscode.ViewColumn.Active,
   });
   editor.revealRange(range, vscode.TextEditorRevealType.AtTop);
+}
+
+function normalizeCharacter(character: number | undefined, lineLength: number): number {
+  const requestedCharacter = typeof character === "number" && Number.isFinite(character) ? character : 0;
+  return Math.min(Math.max(Math.trunc(requestedCharacter), 0), lineLength);
 }
 
 function normalizeLine(line: number | undefined, document: vscode.TextDocument): number {

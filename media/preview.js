@@ -1,3 +1,5 @@
+import { annotateTokenSourceLines, sourcePositionForWord } from "./preview-position.mjs";
+
 export function startPreview({ marked, mermaid, plantuml }) {
   const vscode = acquireVsCodeApi();
   const shell = document.querySelector(".shell");
@@ -77,6 +79,28 @@ export function startPreview({ marked, mermaid, plantuml }) {
 
     content.addEventListener("click", () => {
       content.focus({ preventScroll: true });
+    });
+
+    readingList.addEventListener("dblclick", (event) => {
+      const card = event.target instanceof Element ? event.target.closest("[data-section-id]") : null;
+      const section = state.sections.find((candidate) => candidate.id === card?.dataset.sectionId);
+      if (!section) {
+        return;
+      }
+
+      event.preventDefault();
+      openEditorAtLine(section.line);
+    });
+
+    sectionBody.addEventListener("dblclick", (event) => {
+      const sourceElement = event.target instanceof Element ? event.target.closest("[data-source-line]") : null;
+      const section = state.sections.find((candidate) => candidate.id === state.activeId) ?? state.sections[0];
+      const tokenIndex = Number(sourceElement?.getAttribute("data-source-token-index"));
+      const token = Number.isInteger(tokenIndex) ? section?.tokens[tokenIndex] : undefined;
+      const wordPosition = sourcePositionFromSelection(sourceElement, token);
+
+      event.preventDefault();
+      openEditorAtPosition(wordPosition ?? { line: section?.line ?? 0, character: 0 });
     });
 
     window.addEventListener("focus", () => {
@@ -169,10 +193,9 @@ export function startPreview({ marked, mermaid, plantuml }) {
 
   function parseSections(markdown) {
     const tokens = marked.lexer(markdown);
-    const headingLines = headingLineNumbers(markdown);
+    annotateTokenSourceLines(tokens);
     const sections = [];
     let current;
-    let headingIndex = 0;
 
     for (const token of tokens) {
       if (token.type === "heading") {
@@ -180,10 +203,9 @@ export function startPreview({ marked, mermaid, plantuml }) {
           id: "section-" + sections.length,
           depth: token.depth,
           heading: token.text,
-          line: headingLines[headingIndex] ?? 0,
+          line: token.sourceLine ?? 0,
           tokens: [token],
         };
-        headingIndex += 1;
         sections.push(current);
         continue;
       }
@@ -203,34 +225,6 @@ export function startPreview({ marked, mermaid, plantuml }) {
     }
 
     return sections;
-  }
-
-  function headingLineNumbers(markdown) {
-    const lines = markdown.split(/\r?\n/);
-    const headingLines = [];
-    let inFence = false;
-
-    lines.forEach((line, index) => {
-      if (/^ {0,3}(```|~~~)/.test(line)) {
-        inFence = !inFence;
-        return;
-      }
-
-      if (inFence) {
-        return;
-      }
-
-      if (/^ {0,3}#{1,6}\s+/.test(line)) {
-        headingLines.push(index);
-        return;
-      }
-
-      if (index > 0 && /^ {0,3}(=+|-+)\s*$/.test(line) && lines[index - 1].trim()) {
-        headingLines.push(index - 1);
-      }
-    });
-
-    return headingLines;
   }
 
   function render({ readingListScrollTop = null, sectionBodyScrollTop = null } = {}) {
@@ -454,10 +448,41 @@ export function startPreview({ marked, mermaid, plantuml }) {
 
   function openEditorAtActiveSection() {
     const section = state.sections.find((candidate) => candidate.id === state.activeId) ?? state.sections[0];
+    openEditorAtLine(section?.line ?? 0);
+  }
+
+  function openEditorAtLine(line) {
+    openEditorAtPosition({ line, character: 0 });
+  }
+
+  function openEditorAtPosition(position) {
     vscode.postMessage({
       type: "openEditor",
-      line: section?.line ?? 0,
+      ...position,
     });
+  }
+
+  function sourcePositionFromSelection(sourceElement, token) {
+    const selection = window.getSelection();
+    if (!sourceElement || !selection || selection.rangeCount === 0) {
+      return null;
+    }
+
+    const selectionRange = selection.getRangeAt(0);
+    if (!sourceElement.contains(selectionRange.startContainer)) {
+      return null;
+    }
+
+    const prefixRange = document.createRange();
+    prefixRange.selectNodeContents(sourceElement);
+    prefixRange.setEnd(selectionRange.startContainer, selectionRange.startOffset);
+
+    return sourcePositionForWord(
+      token,
+      sourceElement.textContent ?? "",
+      prefixRange.toString().length,
+      selection.toString(),
+    );
   }
 
   function currentReadingListScrollTop() {
@@ -487,11 +512,28 @@ export function startPreview({ marked, mermaid, plantuml }) {
   function renderBody(section) {
     const renderVersion = (bodyRenderVersion += 1);
     const article = document.createElement("article");
-    article.innerHTML = marked.parser(section.tokens);
+    appendRenderedTokens(article, section.tokens, section.line);
     resolveImageSources(article);
     const diagrams = [...prepareMermaidDiagrams(article), ...preparePlantUmlDiagrams(article)];
     sectionBody.replaceChildren(article);
     renderDiagrams(diagrams, renderVersion);
+  }
+
+  function appendRenderedTokens(article, tokens, fallbackLine) {
+    tokens.forEach((token, tokenIndex) => {
+      const template = document.createElement("template");
+      template.innerHTML = marked.parser([token]);
+      const sourceLine = Number.isFinite(token.sourceLine) ? token.sourceLine : fallbackLine;
+
+      for (const node of template.content.childNodes) {
+        if (node instanceof Element) {
+          node.setAttribute("data-source-line", String(sourceLine));
+          node.setAttribute("data-source-token-index", String(tokenIndex));
+        }
+      }
+
+      article.append(template.content);
+    });
   }
 
   function initializeMermaid() {
@@ -513,6 +555,8 @@ export function startPreview({ marked, mermaid, plantuml }) {
       const diagram = document.createElement("div");
       diagram.className = "mermaid diagram-rendering";
       diagram.textContent = "Rendering Mermaid diagram...";
+      diagram.dataset.sourceLine = code.parentElement?.dataset.sourceLine ?? "";
+      diagram.dataset.sourceTokenIndex = code.parentElement?.dataset.sourceTokenIndex ?? "";
       code.parentElement?.replaceWith(diagram);
       diagrams.push({
         element: diagram,
@@ -529,6 +573,8 @@ export function startPreview({ marked, mermaid, plantuml }) {
       const diagram = document.createElement("div");
       diagram.className = "plantuml diagram-rendering";
       diagram.textContent = "Rendering PlantUML diagram...";
+      diagram.dataset.sourceLine = code.parentElement?.dataset.sourceLine ?? "";
+      diagram.dataset.sourceTokenIndex = code.parentElement?.dataset.sourceTokenIndex ?? "";
       code.parentElement?.replaceWith(diagram);
       diagrams.push({
         element: diagram,
