@@ -1,79 +1,107 @@
-# Markscope VS Code
+<p align="center">
+  <img src="images/icon.png" alt="Markscope icon" width="128">
+</p>
 
-Review Markdown structure inside VS Code.
+<h1 align="center">Markscope</h1>
 
-Markscope opens Markdown files as a custom preview with an outline pane and a focused section body. It is useful for reviewing document shape, topic flow, and section balance while editing.
+<p align="center">Review Markdown structure without leaving VS Code.</p>
 
-The preview runs entirely inside the extension webview. It does not require the `markscope` command or any sibling checkout.
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=m2tkl.markscope-vscode"><img src="https://img.shields.io/badge/VS%20Marketplace-Install-007ACC?logo=visualstudiocode&amp;logoColor=white" alt="Install Markscope from the Visual Studio Marketplace"></a>
+</p>
 
-Markdown parsing is bundled with the extension, so the published extension is self-contained.
+Markscope places a navigable outline beside the selected section of your Markdown document. It is designed for reviewing long documents where heading hierarchy, topic flow, and section balance matter.
 
 ## Features
 
-- Open Markdown files with `Markscope Preview`.
-- Switch between outline-only and first-paragraph reading.
-- Filter the outline by heading depth.
-- Switch the reading panes between automatic, side-by-side, and stacked layouts.
-- Navigate sections with `ArrowUp`, `ArrowDown`, `j`, and `k`.
-- Open the Markdown editor at a heading or rendered block by double-clicking the preview.
-- Sync the selected outline item from the active Markdown editor cursor.
-- Render Mermaid diagrams from fenced `mermaid` code blocks.
-- Render PlantUML diagrams from fenced `plantuml` and `puml` code blocks.
+- **Structure-first review:** scan the document by heading without rendering every section at once.
+- **Focused reading:** show only the selected section, or add its first paragraph to the outline.
+- **Direct editing:** double-click an outline entry to edit its heading, or double-click a word in the rendered paragraph to edit it at the source position.
+- **Editor synchronization:** follow the active Markdown editor cursor from the outline.
+- **Flexible layout:** use automatic, side-by-side, or stacked reading panes.
+- **Heading filters:** limit the outline to the heading depth relevant to your review.
+- **Local rendering:** preview tables, local images, Mermaid diagrams, and PlantUML diagrams without an external rendering service.
 
-## Usage
+## Getting Started
 
-Open a Markdown file, then run:
+1. Open a Markdown file in VS Code.
+2. Run `Markscope: Open Preview` from the Command Palette.
+3. Select a heading in the outline to review that section.
 
-```text
-Markscope: Open Preview
+You can also open Markscope in either of these ways:
+
+- Choose `Open in Markscope` from a Markdown file's Explorer context menu.
+- Choose `Markscope Preview` from `Reopen Editor With...` or `Open With...`.
+
+## Editing From The Preview
+
+| Interaction | Result |
+| --- | --- |
+| Click an outline entry | Select and render that section |
+| Double-click an outline entry | Open the Markdown editor at that heading |
+| Double-click a word in a paragraph | Open the editor at the beginning of that word |
+| Double-click empty body space | Open the editor at the selected heading |
+| Select `Edit` | Open the editor at the selected heading |
+
+Markdown emphasis and link syntax are accounted for when locating the selected word in the source.
+
+## Keyboard Navigation
+
+| Key | Action |
+| --- | --- |
+| `ArrowDown` or `j` | Select the next visible heading |
+| `ArrowUp` or `k` | Select the previous visible heading |
+
+## Diagram Support
+
+Use fenced code blocks to render diagrams inside the selected section.
+
+````markdown
+```mermaid
+flowchart LR
+  Draft --> Review --> Publish
 ```
 
-You can also use `Reopen Editor With...` or `Open With...` and choose `Markscope Preview`.
+```plantuml
+@startuml
+Alice -> Bob: Review
+@enduml
+```
+````
 
-From the Explorer context menu, use `Open in Markscope` on a Markdown file.
+PlantUML fences may use either `plantuml` or `puml` as the language identifier.
 
-## Development Setup
+## Requirements
 
-Enter the Nix development shell:
+- Visual Studio Code 1.96 or later
+- A local Markdown file with a `.md`, `.markdown`, `.mdown`, or `.mkd` extension
+
+Markscope bundles its Markdown and diagram renderers. It does not require a separate CLI, sibling checkout, or rendering server.
+
+## Development
+
+Enter the Nix development shell and install dependencies:
 
 ```sh
 nix develop
+pnpm install --frozen-lockfile
 ```
 
-The shell provides Node.js 22 and pnpm 10.
-
-Install dependencies:
+Run verification:
 
 ```sh
-pnpm install
-```
-
-For non-interactive shells, use:
-
-```sh
-CI=true pnpm install --frozen-lockfile
-```
-
-Compile the extension:
-
-```sh
+pnpm test
 pnpm run compile
 ```
 
-Run the extension from VS Code with the `Run Extension` launch target. In the Extension Development Host window, open a Markdown file and use `Reopen Editor With...` or `Open With...` to choose `Markscope Preview`.
-
-Package a local `.vsix`:
+Launch the `Run Extension` target from VS Code to open an Extension Development Host. To create a local package, run:
 
 ```sh
 pnpm run package
 ```
 
-Publish from the Marketplace publisher management page:
+See [docs/release.md](docs/release.md) for the complete release checklist.
 
-See [docs/release.md](docs/release.md) for the release checklist.
-Use the Nix development shell for release packaging so the pinned Node.js and pnpm versions are used.
+## License
 
-## Commands
-
-- `Markscope: Open Preview`: opens the active Markdown file with the `Markscope Preview` custom editor.
-- `Open in Markscope`: available from the Explorer context menu for Markdown files.
+[MIT](LICENSE)
