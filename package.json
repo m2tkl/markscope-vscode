@@ -6,6 +6,11 @@
   "publisher": "m2tkl",
   "packageManager": "pnpm@10.29.2",
   "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0D141A",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/m2tkl/markscope-vscode.git"
